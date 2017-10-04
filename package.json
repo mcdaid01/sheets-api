@@ -1,0 +1,30 @@
+{
+  "name": "y",
+  "version": "1.0.0",
+  "description": "build up a representation of the database in spreadsheet",
+  "main": "index.js",
+  "author": "mcdaid@gmail.com",
+  "license": "ISC",
+  "private": true,
+  "scripts": {
+    "deploy": "gcloud app deploy",
+    "start": "node server/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "engines": {
+    "node": ">=8.0.0"
+  },
+  "dependencies": {
+    "@google-cloud/datastore": "^1.1.0",
+    "body-parser": "^1.18.2",
+    "crypto": "^1.0.1",
+    "express": "^4.16.1",
+    "faker": "^4.1.0",
+    "google-auth-library": "^0.11.0",
+    "googleapis": "^22.2.0",
+    "gstore-node": "^1.4.0",
+    "lodash": "^4.17.4",
+    "nodemon": "^1.12.1",
+    "path": "^0.12.7"
+  }
+}
