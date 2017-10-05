@@ -8,7 +8,7 @@
   "private": true,
   "scripts": {
     "deploy": "gcloud app deploy",
-    "start": "node server/server.js",
+    "start": "nodemon server/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "engines": {

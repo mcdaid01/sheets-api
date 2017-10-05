@@ -3,11 +3,11 @@ and replace some of the text and finally add a new sheet and delete one if if ca
 obviously some of the ids have to change to make it work
 */
 const google = require('googleapis')
-const authentication = require('./authentication')
+const authentication = require('../server/sheets/authentication')
 
 const { spreadsheetId } = require('../config/config.js')
 
-const [title, find, replacement, sheetId] = ['my super new title', 'Richard', 'Dick']
+const [title, find, replacement, sheetId] = ['sheets-api', 'Richard', 'Dick']
 
 const requests = []
 
@@ -51,7 +51,7 @@ if (false)
 
 const batchUpdateRequest = {requests: requests}
 
-const appendData = (auth, spreadsheetId)=> {
+const appendData = (auth, spreadsheetId) => {
 	const sheets = google.sheets('v4')
 
 	sheets.spreadsheets.batchUpdate({

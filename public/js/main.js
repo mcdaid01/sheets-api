@@ -8,8 +8,8 @@ class App {
 		this.buildList()
 	}
 
-	post(url,data){
-		return new Promise( (resolve,reject)=>{
+	post(url, data){
+		return new Promise( (resolve, reject) => {
 			
 			if (data.hasOwnProperty('fun'))
 				data = this.functions(data.fun)()
@@ -21,10 +21,10 @@ class App {
 				type: 'POST',
 				url,
 				data:JSON.stringify(data),
-				success: (data)=> resolve(data),
+				success: (data) => resolve(data),
 				contentType: 'application/json; charset=utf-8',
 				dataType: 'json',
-				error:(xhr, ajaxOptions, thrownError)=>reject(xhr, ajaxOptions, thrownError)
+				error:(xhr, ajaxOptions, thrownError) => reject(xhr, ajaxOptions, thrownError)
 			  })
 		})
 	}
@@ -33,11 +33,11 @@ class App {
 		console.log(name)
 
 		return {
-			time:()=> new Object({timestamp:Date.now(),animal:_.sample(['dog','cat','bunny','snake'])})
+			time:() => new Object({timestamp:Date.now(), animal:_.sample(['dog', 'cat', 'bunny', 'snake'])})
 		}[name]
 	}
 
-	buildLink(desc,path,title,data){
+	buildLink(desc, path, title, data){
 		console.log(path)
 		const $li = $('<li>').appendTo($('#actions'))
 		const $a= $('<a>')
@@ -46,13 +46,16 @@ class App {
 				title 
 			}).html(desc).appendTo($li)
 
-		const overide = ()=>{
-			$a.data(data).on('click',(evt)=>{
+		const overide = () => {
+			$a.data(data).on('click', (evt) => {
 				const $this = $(evt.target)
 				evt.preventDefault()
-				this.post($this.attr('href'),$this.data())
-					.then(data=> console.log(data))
-					.catch((e)=>console.log(e))
+				this.post($this.attr('href'), $this.data())
+					.then(data => {
+						console.log(data)
+						window.data = data
+					})
+					.catch((e) => console.log(e))
 			})
 		}
 
@@ -62,8 +65,9 @@ class App {
 	buildList(data){
 
 		if (true){
-			this.buildLink('POST /seed-schools','seed-schools','view the sample data',{total:5})
-			console.log()
+			this.buildLink('POST /seed-schools', 'seed-schools', 'will update first sheet with new schools', {total:5})
+			this.buildLink('POST /seed-students', 'seed-students', 'will update second sheet with new students', {total:5})
+		
 			//this.buildLink('GET /timestamps','timestamps','get items that have been stored')
 			//this.buildLink('POST /storeitem','storeitem','send a timestamp that will be stored on server',{fun:'time'})
 
@@ -74,19 +78,19 @@ class App {
 			const school = data[0]
 
 			const student1 = data[1].students[0]
-			const {password,id} = student1
+			const {password, id} = student1
 		
-			this.buildLink('GET /data','data','view the sample data')
-			this.buildLink('GET /datalists','datalists','view lists of schools teachers and students')
-			this.buildLink('GET /school/:id',`school/${school._id}`,'get school based on its objectId')
-			this.buildLink('GET /students/:id',`students/${school._id}`,'list students from a school based on school objectId')
-			this.buildLink('GET /schoolId/:id',`schoolid/${school.id}`,'get school from it schoolId ')
+			this.buildLink('GET /data', 'data', 'view the sample data')
+			this.buildLink('GET /datalists', 'datalists', 'view lists of schools teachers and students')
+			this.buildLink('GET /school/:id', `school/${school._id}`, 'get school based on its objectId')
+			this.buildLink('GET /students/:id', `students/${school._id}`, 'list students from a school based on school objectId')
+			this.buildLink('GET /schoolId/:id', `schoolid/${school.id}`, 'get school from it schoolId ')
 
 			// get working without password first, need user
-			this.buildLink('POST /student','student','get a user back based on schoolId studentId. fake login!',
-				{'schoolId':data[1].id,id,password})
+			this.buildLink('POST /student', 'student', 'get a user back based on schoolId studentId. fake login!',
+				{'schoolId':data[1].id, id, password})
 
-			this.buildLink('POST /students','students','simulate adding student',{
+			this.buildLink('POST /students', 'students', 'simulate adding student', {
 				_id:school._id, students : this.seedStudents()
 			})
 		}
@@ -99,8 +103,8 @@ class App {
 
 	seedStudents(total = 3){
 		
-		const createStudent= ()=>{
-			const [first,last]=[faker.name.firstName(),faker.name.lastName()]
+		const createStudent= () => {
+			const [first, last]=[faker.name.firstName(), faker.name.lastName()]
 			// const schoolId =  _.sample(schoolIds)
 			// const id =  first.charAt(0)+last // might be done on the server
 			
@@ -109,7 +113,7 @@ class App {
 			}
 		}
 		
-		return _.times(total,()=>createStudent()) 
+		return _.times(total, () => createStudent()) 
 	}
 }
 

@@ -3,7 +3,8 @@ const path = require('path')
 
 const playPath = path.join(__dirname, '../playground')
 const { spreadsheetId } = require('../config/config.js')
-const authentication = require(playPath + '/authentication')
+const authentication = require('../server/sheets/authentication')
+
 
 const getData = (auth, range, spreadsheetId) => {
 	const sheets = google.sheets('v4')

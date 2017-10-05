@@ -1,14 +1,30 @@
 
 const [faker, _ ] = [ require('faker'), require('lodash')]
 
-const createSchool = ()=>{
+const sheets = require('../sheets/sheets')
+const { spreadsheetId } = require('../../config/config.js')
+let sheetInfo
+sheets.ready().then(() => {
+	console.log('ready motherfucker')
+	sheets.getInfo()
 	
-	const lastWord = () => _.sample(['Secondary School','High School','Academy','Middle School']) 
+})  
+
+const totalSchools = 12
+const schoolIds = []
+_.times(totalSchools, (i) => schoolIds.push('sch-'+ _.padStart(i, 3, '0')) )
+
+
+const createSchool = index => {
+	
+	const lastWord = () => _.sample(['Secondary School', 'High School', 'Academy', 'Middle School']) 
 	
 	const schoolProps = {
 		name: `St ${faker.name.firstName()} ${lastWord()}`,
-		id: faker.address.countryCode()+Math.floor(Math.random()*10000), // faked for now see json/countries.json
-		address:[faker.address.streetAddress(),faker.address.county(),faker.address.state()], // state easier to query 
+		id: schoolIds[index], // faked for now see json/countries.json
+
+		// note joining it here for the sake of spreadsheet
+		address:[faker.address.streetAddress(), faker.address.county(), faker.address.state()].join(','), // state easy query
 		zipcode:faker.address.zipCode(),
 		active:Math.random()>0.2
 	}
@@ -16,7 +32,18 @@ const createSchool = ()=>{
 	return schoolProps
 }
 
-const createSchools = (total) => _.times(total , () => createSchool() )
+const createStudent = () => {
+	
+	const [first, last]=[faker.name.firstName(), faker.name.lastName()]
+	const schoolId = _.sample(schoolIds)
+	const id =  first.charAt(0)+last + '_' +schoolId
+	
+	return { first, last, id, schoolId } 
+}
+
+// important not using the one that is sent
+const createSchools = (total) => _.times(totalSchools, (i) => createSchool(i) )
+const createStudents = (total) => _.times(total, () => createStudent() )
 
 // will take out most of this when finished 
 
@@ -27,15 +54,31 @@ const createSchools = (total) => _.times(total , () => createSchool() )
 // apart from testing doesn't make much sense, if anything would populate the spreadsheet
 // the routes would be getting data back from the spreadsheet
 // that way could change the spreadsheets themselves
-const seedSchools = (req,res,next)=>{
-	try{
-		const total = req.body.total
 
-		
-		res.send (createSchools(total))
+
+
+
+module.exports = { 
+	async seedSchools(req, res, next){
+		try{
+			const schools = createSchools(req.body.total)
+			const keys = Object.keys(schools[0])
+			const values = schools.map( ob => Object.values(ob))
+			values.unshift(keys)
+			const result = await sheets.update(spreadsheetId, values )
+			res.send (result)
+		}
+		catch (e) { next(e) }
+	},
+	async seedStudents(req, res, next){
+		try{
+			const students = createStudents(req.body.total)
+			const keys = Object.keys(students[0])
+			const values = students.map( ob => Object.values(ob))
+			values.unshift(keys)
+			const result = await sheets.update(spreadsheetId, values )
+			res.send (result)
+		}
+		catch (e) { next(e) }
 	}
-	catch (e) { next(e) }
 }
-
-
-module.exports = { seedSchools }

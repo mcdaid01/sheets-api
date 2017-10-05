@@ -3,16 +3,18 @@
 	 have index and unique titles too
 */
 const google = require('googleapis')
-const authentication = require('./authentication')
+const authentication = require('../server/sheets/authentication')
 const { spreadsheetId } = require('../config/config.js')
 
-sheets.spreadsheets.get( {auth, spreadsheetId }, (err, res)=>{
-	console.log('******************')
-	console.log(res)
-	//console.log(err)
-	console.log(res.sheets)
+const getInfo = (auth, spreadsheetId) => {
+	const sheets = google.sheets('v4')
+	sheets.spreadsheets.get( {auth, spreadsheetId }, (err, res) => {
+		console.log('******************')
+		console.log(res)
+		//console.log(err)
+		console.log(res.sheets)
 
-	console.log(res)
-})
-	
-authentication.authenticate().then( auth => appendData(auth, spreadsheetId) )
+		//console.log(res)
+	})
+}	
+authentication.authenticate().then( auth => getInfo(auth, spreadsheetId) )

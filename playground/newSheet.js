@@ -5,10 +5,11 @@
 */
 
 const google = require('googleapis')
-const authentication = require('./authentication')
+const authentication = require('../server/sheets/authentication')
+
 const title = 'newSheet'
  
-const addSheet = (auth)=> {
+const addSheet = (auth) => {
 	var sheets = google.sheets('v4')
 	sheets.spreadsheets.create({
 		auth: auth,
@@ -25,6 +26,6 @@ const addSheet = (auth)=> {
 	})
 }
  
-authentication.authenticate().then(auth=>{
+authentication.authenticate().then(auth => {
 	addSheet(auth)
 })
