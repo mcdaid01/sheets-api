@@ -65,8 +65,17 @@ class App {
 	buildList(data){
 
 		if (true){
-			this.buildLink('POST /seed-schools', 'seed-schools', 'will update first sheet with new schools', {total:5})
+			// note totals hard coded
+			this.buildLink('POST /seed-schools', 'seed-schools', 'will update first sheet with new schools', {total:5}) 
 			this.buildLink('POST /seed-students', 'seed-students', 'will update second sheet with new students', {total:5})
+
+
+			this.buildLink('POST /full-set-up', 'full-set-up', 'create new populated spreadsheet', 
+				{title:'full-school', schoolsTotal:2, studentsTotal:20})
+			
+			
+
+			this.buildLink('GET /sheet-info', 'sheet-info', 'view the information object for sheet')
 		
 			//this.buildLink('GET /timestamps','timestamps','get items that have been stored')
 			//this.buildLink('POST /storeitem','storeitem','send a timestamp that will be stored on server',{fun:'time'})

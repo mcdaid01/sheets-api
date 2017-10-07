@@ -1,35 +1,105 @@
+'use strict'
 const google = require('googleapis')
 const authentication = require('./authentication')
 const sheets = google.sheets('v4')
 
-// hard coding the sheetid at this point, probably would want to work with multiple sheets
-const setSheetInfo = () => {
+const batchProcess = (arr) => {
+	const [ type, args  ]= arr 
+	 
+	//probably should refactator to a switch as have to parse whole object each time
+	// also can lead to elusive errors such as the userEnteredFormat Object.keys thing
+	const obj ={
+		title : {
+			updateSpreadsheetProperties: {
+				properties: {
+					title: args.title
+				},
+				fields: 'title'
+			}
+		},
+		sheetTitle:{
+			updateSheetProperties: {
+				properties: {
+					sheetId: args.sheetId,
+					title: args.title
+				},
+				fields: 'title'
+			}
+		},
+		freeze : {
+			updateSheetProperties: {
+				properties: {
+					sheetId: args.sheetId,
+					gridProperties: {
+						frozenRowCount: args.rowCount
+					}
+				},
+				'fields': 'gridProperties.frozenRowCount'
+			}
+		},
+		userEnteredFormat : {
+			repeatCell: {
+				range: args.range,
+				cell: {
+					userEnteredFormat:  args.userEnteredFormat
+				},
+				fields: `userEnteredFormat(${args.userEnteredFormat ? Object.keys(args.userEnteredFormat).join(',') : ''})`
+			}
+		}
+	}[type] 
 
+	//onsole.log(JSON.stringify(obj, null, 2) )
+	
+
+	return obj
 }
-
 
 
 exports = { // note would not let me put const infront
 	update(spreadsheetId, values, range = 'Sheet1!A1', valueInputOption = 'RAW'){
 		const resource = { values: values }
+
+		console.log(JSON.stringify(resource.values, null, 2))
 		
 		return update(spreadsheetId, range, valueInputOption, resource, 'update')
 	},
 	append( spreadsheetId, values, range = 'Sheet1!A1', valueInputOption = 'RAW' ){
-
+		
 		const resource = { values: values }
 				
 		return update(spreadsheetId, range, valueInputOption, resource, 'append')
 	},
 	getInfo( spreadsheetId ){
-		const auth = this.auth
-		sheets.spreadsheets.get( {auth, spreadsheetId }, (err, res) => {
-			console.log('******************')
-			console.log(res)
-			//console.log(err)
-			console.log(res.sheets)
-	
-			//console.log(res)
+		return new Promise( (resolve, reject) => {
+			const auth = this.auth
+			sheets.spreadsheets.get( {auth, spreadsheetId }, (err, res) => {
+				err ? reject(err) : resolve(res) 
+			})
+		})
+		
+	},
+	batch(spreadsheetId, batchList){
+
+		return new Promise( (resolve, reject) => {
+			const auth = this.auth
+			//batchList.forEach( (ob, index) => console.log(JSON.stringify(ob, null, 2) ))
+			const requests = batchList.map(batchProcess)
+			const resource = { requests }
+			
+			sheets.spreadsheets.batchUpdate( { auth, spreadsheetId, resource }, 
+				(err, res) => err ? reject(err) : resolve(res) )
+
+		})
+	},
+	newSpreadSheet(title){
+		return new Promise( (resolve, reject) => {
+			const auth = this.auth
+			sheets.spreadsheets.create({
+				auth: auth,
+				resource: {
+					properties:{ title }
+				}
+			}, (err, res) =>  err ? reject(err) : resolve(res) )
 		})
 	},
 	ready(callback){

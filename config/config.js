@@ -3,5 +3,5 @@
 module.exports = {
 	tokenFile : 'sheets-api.json', // stored in users/mike/.credentials
 	SCOPES : ['https://www.googleapis.com/auth/spreadsheets'], // if change delete the tokenFile so it can be created again
-	spreadsheetId : '1CV8voemMge42gOokqSNGjhQc0hXmsu5fmfQgcjO3kpY'
+	spreadsheetId : '1Wqb5pemSWD5JCKqFXR7-PdCjFg3z5Cvxtys6h9zNWmU'
 }
