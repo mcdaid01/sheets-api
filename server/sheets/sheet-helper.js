@@ -1,11 +1,11 @@
-'use strict'
 const google = require('googleapis')
 const authentication = require('./authentication')
 const sheets = google.sheets('v4')
 
 const batchProcess = (arr) => {
 	const [ type, args  ]= arr 
-	 
+	console.log(type)
+	//console.log(type, args)
 	//probably should refactator to a switch as have to parse whole object each time
 	// also can lead to elusive errors such as the userEnteredFormat Object.keys thing
 	const obj ={
@@ -37,6 +37,20 @@ const batchProcess = (arr) => {
 				'fields': 'gridProperties.frozenRowCount'
 			}
 		},
+		addSheet: {
+			addSheet: {
+				properties: {
+					title: args.title,
+					'gridProperties': { 'rowCount': args.rowCount, 'columnCount': args.columnCount },
+					'tabColor': { 'red': 1.0, 'green': 1.0, 'blue': 1.0 }
+				}
+			}
+		},
+		deleteSheet : { 
+			deleteSheet: { 
+				sheetId : args.sheetId 
+			}  
+		},
 		userEnteredFormat : {
 			repeatCell: {
 				range: args.range,
@@ -48,18 +62,17 @@ const batchProcess = (arr) => {
 		}
 	}[type] 
 
-	//onsole.log(JSON.stringify(obj, null, 2) )
+	// console.log(JSON.stringify(obj, null, 2) )
 	
 
 	return obj
 }
 
-
 exports = { // note would not let me put const infront
 	update(spreadsheetId, values, range = 'Sheet1!A1', valueInputOption = 'RAW'){
 		const resource = { values: values }
 
-		console.log(JSON.stringify(resource.values, null, 2))
+		// console.log(JSON.stringify(resource.values, null, 2))
 		
 		return update(spreadsheetId, range, valueInputOption, resource, 'update')
 	},
@@ -91,6 +104,14 @@ exports = { // note would not let me put const infront
 
 		})
 	},
+	clear(spreadsheetId, range){
+		return new Promise( (resolve, reject) => {
+			const auth = this.auth
+			sheets.spreadsheets.values.clear({auth, spreadsheetId, range},
+				(err, res) => err ? reject(err) : resolve(res) )
+		})
+			
+	},
 	newSpreadSheet(title){
 		return new Promise( (resolve, reject) => {
 			const auth = this.auth
@@ -115,7 +136,7 @@ exports = { // note would not let me put const infront
 
 
 
-const update = (spreadsheetId, range, valueInputOption, resource, operationType) => { // convert to a promise
+const update = (spreadsheetId, range, valueInputOption, resource, operationType) => {
 	return new Promise((resolve, reject) => {
 		const auth = exports.auth
 		sheets.spreadsheets.values[operationType]({ auth, spreadsheetId, range, valueInputOption, resource }, 

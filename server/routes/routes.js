@@ -11,6 +11,9 @@ module.exports = (app) => {
 
 	app.get('/api/sheet-info', mc.sheetInfo)
 
-	// eventually will have route /api/full-setup   -- which would seed schools, students, format the sheets etc
+	app.post('/api/seed-individual-school', mc.sheetIndividualSchool )
+
+	// want to figure out the 'The request is missing a valid API key.'
+	app.get('/api/debug', mc.debug) 
 
 }

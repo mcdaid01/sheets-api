@@ -1,25 +1,25 @@
-
 const [faker, _ ] = [ require('faker'), require('lodash')]
 
-const sheets = require('../sheets/sheets')
+const sheetHelper = require('../sheets/sheet-helper')
 const { spreadsheetId } = require('../../config/config.js')
 let sheetInfo
 
-sheets.ready().then(() => {
-	console.log('sheets ready')
+sheetHelper.ready().then(() => {
+	console.log('sheets ready!!')
 		
-	sheets.getInfo(spreadsheetId).then(info => {
+	sheetHelper.getInfo(spreadsheetId).then(info => {
 		sheetInfo = info
 	})
 
 	// comeback make sure understand ranges
 
-	// easier to get working here
+	// easier to get working here, just a bunch of batch operations
 	if (false) 
-		sheets.batch(spreadsheetId, [ 
+		sheetHelper.batch(spreadsheetId, [ 
 			['title', {title : 'sheets-api'}],
 			['sheetTitle', {title : 'Sheet 1', sheetId: 0}],
 			['freeze', {rowCount : 1, sheetId:0 }],
+			//['deleteSheet', {sheetId: 1940078753}],
 			['userEnteredFormat', { 
 		 		range:{ sheetId:0, startRowIndex:0, endRowIndex:1  }, //   
 			 	userEnteredFormat:{ 
@@ -36,8 +36,9 @@ sheets.ready().then(() => {
 		]).then( result => console.log(result) )
 })
 
-
+// note if change stuff like a tab name then info will be out of date so won't get correct title back
 const getSheetTitle = (index) => sheetInfo.sheets[index].properties.title
+const getSheetId = (index) => sheetInfo.sheets[index].properties.sheetId
 
 const totalSchools = 5
 const totalStudents = totalSchools*5 // no point in making massive yet
@@ -73,8 +74,8 @@ const createStudent = () => {
 }
 
 // important not using the one that is sent
-const createSchools = (total) => _.times(totalSchools, (i) => createSchool(i) )
-const createStudents = (total) => _.times(totalStudents, () => createStudent() )
+const createSchools = (total) => _.times(total, (i) => createSchool(i) )
+const createStudents = (total) => _.times(total, () => createStudent() )
 
 // will take out most of this when finished 
 
@@ -86,19 +87,22 @@ const createStudents = (total) => _.times(totalStudents, () => createStudent() )
 // the routes would be getting data back from the spreadsheet
 // that way could change the spreadsheets themselves
 
-
+const toTable = arr => {
+	const keys = Object.keys(arr[0])
+	const values = arr.map( ob => Object.values(ob))
+	values.unshift(keys)
+	return values
+}
 
 
 module.exports = { 
-	sheets, // used by quick.js
+	sheetHelper, // used by quick.js
 	async seedSchools(req, res, next){
 		try{
 			const schools = createSchools(req.body.total)
-			const keys = Object.keys(schools[0])
-			const values = schools.map( ob => Object.values(ob))
+			const values = toTable(schools)
 			const range = `${getSheetTitle(0)}!A1`
-			values.unshift(keys)
-			const result = await sheets.update(spreadsheetId, values, range )
+			const result = await sheetHelper.update(spreadsheetId, values, range )
 			res.send (result)
 		}
 		catch (e) { next(e) }
@@ -106,51 +110,108 @@ module.exports = {
 	async seedStudents(req, res, next){
 		try{
 			const students = createStudents(req.body.total)
-			const keys = Object.keys(students[0])
-			const values = students.map( ob => Object.values(ob))
-			values.unshift(keys)
+			const values = toTable(students)
 			const range = `${getSheetTitle(1)}!A1`
-			const result = await sheets.update(spreadsheetId, values, range )
+			const result = await sheetHelper.update(spreadsheetId, values, range )
 			
 			res.send (result)
 		}
 		catch (e) { next(e) }
 	},
-	async fullSetUp(req, res, next){ // this one will create a completely new spreadsheet and populate it
-		try{
-			// const spread = await sheets.newSpreadSheet('bSpreadsheet')
+	async fullSetUp(req, res, next){
+		
+		// does not create a completely new spreadsheet
+		const schoolsCount = 5
+		const studentsCount = schoolsCount * 30
+
+		const styleHeaders = (spreadsheetId, index) => {
 			
-			//console.log('spread created\n\n', spread)
-
-			//console.log('sheets \n\n', spread.sheets)
-
-			const spreadsheetId = '1Wqb5pemSWD5JCKqFXR7-PdCjFg3z5Cvxtys6h9zNWmU'
-			const sheetId = 0
-			const info = await sheets.getInfo(spreadsheetId)
-			console.log(info.sheets.length)
-
-			console.log(info.sheets[1])
-
-			await sheets.batch(spreadsheetId, [ 
-				['sheetTitle', {title:'Schools', sheetId: info.sheets[0].sheetId} ], 
-				['title', {title : 'sheets-api'}]])
-				
-			
-			//const result = await sheets.batch(spreadsheetId, [ ['title', {title:'Schools'} ] ])
-			//const result = await sheets.batch(spreadsheetId, [ ['sheetTitle', {title:'Schools', sheetId} ] ])
-			//console.log(result)
-			
+			return sheetHelper.batch(spreadsheetId, [
+				['userEnteredFormat', { 
+					range:{ sheetId:getSheetId(index), startRowIndex:0, endRowIndex:1  }, //   
+					userEnteredFormat:{ 
+				   backgroundColor: { red: 0.0, green: 0.0, blue: 0.0 },
+				   horizontalAlignment : 'CENTER',
+						textFormat:{
+					   foregroundColor: { red: 1.0, green: 1.0, blue: 1.0 }, 
+					   fontFamily:'arial', 
+					   bold:true, 
+					   fontSize: 12 
+				   }
+					}
+				}]])
 		}
-		catch (e) { 
-			console.log(e)
-		 }
+
+		const populate = (spreadsheetId, index, values) => {
+			let range = `${getSheetTitle(index)}!A1`
+			return sheetHelper.update(spreadsheetId, values, range )
+		}
+		
+		try{
+			
+			const info = await sheetHelper.getInfo(spreadsheetId)
+			
+			const arr = [ 
+				['title', {title : 'sheets-api'}],
+				['sheetTitle', {title:'Schools', sheetId: getSheetId(0) } ],
+			]
+
+			if (info.sheets.length === 1)
+				arr.push(['addSheet', { title:'Students', 'rowCount':studentsCount, 'columnCount': 5 }])
+			
+			await sheetHelper.batch(spreadsheetId, arr )
+
+			await Promise.all(_.times(2, i => {
+				styleHeaders(spreadsheetId, i)
+				return sheetHelper.clear(spreadsheetId, `${getSheetTitle(i)}!A1:XX`)
+			}))
+			
+			
+			const schools = createSchools(schoolsCount)
+			let values = toTable(schools)
+			await populate(spreadsheetId, 0, values)
+			
+			const students = createStudents(studentsCount)
+			values = toTable(students)
+			await populate(spreadsheetId, 1, values)
+
+			res.send ('setup complete')
+		}
+		catch (e) { next(e) }
 	},
 	async sheetInfo(req, res, next){
 		try{
-			const info = await sheets.getInfo(spreadsheetId)
+			const info = await sheetHelper.getInfo(spreadsheetId)
 			res.send (info)
 		}
 		catch(e){ next(e) }
+	},
+	async sheetIndividualSchool(req, res, next){
+		try{
+			const sheetIndex = 2 // going to use the same spreadsheet for the moment 
+			const school = req.body
+			// this is quite straightforward as closer to table form
+
+			// CLEAR SHEET
+			const title = getSheetTitle(2)
+			await sheetHelper.clear(spreadsheetId, `${title}!A1:XX`)
+			console.log('cleared')
+
+			const values = school.students
+			values.unshift(school.headers)
+			const result = sheetHelper.update(spreadsheetId, values, `${title}!A1` )
+			
+			res.send ({title, result})
+		}
+		catch(e){ next(e) }
+	},
+	async debug (req, res, next){
+		try{
+			const info = await sheetHelper.getInfo(spreadsheetId)
+			res.send({debug:'you'})
+		}
+		catch(e) { next(e) }
+		
 	}
 }
 

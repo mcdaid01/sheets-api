@@ -9,7 +9,7 @@
   "scripts": {
     "deploy": "gcloud app deploy",
     "start": "nodemon server/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "NODE_ENV=test nodemon --exec mocha"
   },
   "engines": {
     "node": ">=8.0.0"
@@ -24,7 +24,9 @@
     "googleapis": "^22.2.0",
     "gstore-node": "^1.4.0",
     "lodash": "^4.17.4",
+    "mocha": "^4.0.1",
     "nodemon": "^1.12.1",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "supertest": "^3.0.0"
   }
 }

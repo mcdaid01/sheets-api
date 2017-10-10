@@ -4,10 +4,10 @@ const google = require('googleapis')
 const authentication = require('../server/sheets/authentication')
 const main = require('../server/controllers/main_controller')
 
-main.sheets.ready().then(() => {
+main.sheetHelper.ready().then(() => {
 	console.log('sheets ready!')
-
-	main.fullSetUp()
+	setTimeout(() => main.fullSetUp(), 100)
+	
 })
 
 console.log('ok')

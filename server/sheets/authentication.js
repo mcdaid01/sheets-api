@@ -17,7 +17,11 @@ class Authentication {
 		})
 	}
 	getClientSecret(){
-		return require('../../config/client_secret.json')
+		const client_secret = require('../../config/client_secret.json')
+		// console.log('*****************')
+		// console.log(client_secret)
+		// console.log('*****************')
+		return client_secret
 	}
 	authorize(credentials) {
 		const clientSecret = credentials.installed.client_secret
