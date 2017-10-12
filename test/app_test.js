@@ -31,9 +31,9 @@ describe('The express app', () => {
 			})
 	})
 
-	it ('handles a GET request to /api/debug', done => {
+	it ('handles a POST request to /api/debug', done => {
 		request(app)
-			.get('/api/debug')
+			.post('/api/debug')
 			.end((err, res) => {
 				console.log( res.body )
 				assert(res.status === 200)

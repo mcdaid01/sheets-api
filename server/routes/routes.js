@@ -14,6 +14,7 @@ module.exports = (app) => {
 	app.post('/api/seed-individual-school', mc.sheetIndividualSchool )
 
 	// want to figure out the 'The request is missing a valid API key.'
-	app.get('/api/debug', mc.debug) 
+	// just use for doing stuff quick
+	app.post('/api/debug', mc.debug) 
 
 }

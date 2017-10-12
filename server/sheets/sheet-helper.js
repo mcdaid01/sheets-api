@@ -17,7 +17,7 @@ const batchProcess = (arr) => {
 				fields: 'title'
 			}
 		},
-		sheetTitle:{
+		sheetTitle : {
 			updateSheetProperties: {
 				properties: {
 					sheetId: args.sheetId,
@@ -109,8 +109,7 @@ exports = { // note would not let me put const infront
 			const auth = this.auth
 			sheets.spreadsheets.values.clear({auth, spreadsheetId, range},
 				(err, res) => err ? reject(err) : resolve(res) )
-		})
-			
+		})	
 	},
 	newSpreadSheet(title){
 		return new Promise( (resolve, reject) => {

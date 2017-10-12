@@ -1,7 +1,10 @@
 const [faker, _ ] = [ require('faker'), require('lodash')]
 
 const sheetHelper = require('../sheets/sheet-helper')
+const buildSchool = require('../sheets/build-school')
+
 const { spreadsheetId } = require('../../config/config.js')
+
 let sheetInfo
 
 sheetHelper.ready().then(() => {
@@ -68,7 +71,7 @@ const createStudent = () => {
 	
 	const [first, last]=[faker.name.firstName(), faker.name.lastName()]
 	const schoolId = _.sample(schoolIds)
-	const id =  first.charAt(0)+last // + '_' +schoolId // this would be done in datastore
+	const id =  first.charAt(0) + last // + '_' +schoolId // this would be done in datastore
 	
 	return { first, last, id, schoolId } 
 }
@@ -188,26 +191,21 @@ module.exports = {
 	},
 	async sheetIndividualSchool(req, res, next){
 		try{
-			const sheetIndex = 2 // going to use the same spreadsheet for the moment 
-			const school = req.body
-			// this is quite straightforward as closer to table form
-
-			// CLEAR SHEET
-			const title = getSheetTitle(2)
-			await sheetHelper.clear(spreadsheetId, `${title}!A1:XX`)
-			console.log('cleared')
-
-			const values = school.students
-			values.unshift(school.headers)
-			const result = sheetHelper.update(spreadsheetId, values, `${title}!A1` )
-			
-			res.send ({title, result})
+			//if (true)
+			//	return res.send(req.body)
+				
+			const values = await buildSchool.userPassSheet(req.body)
+			await buildSchool.scoreSheet(values, 'multiply')
+			res.send (values)
 		}
 		catch(e){ next(e) }
 	},
 	async debug (req, res, next){
 		try{
-			const info = await sheetHelper.getInfo(spreadsheetId)
+			
+			//const info = await sheetHelper.getInfo(spreadsheetId)
+			//const result = await buildSchool.addSheet('bollocks')
+			//res.send(result)
 			res.send({debug:'you'})
 		}
 		catch(e) { next(e) }

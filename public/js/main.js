@@ -1,4 +1,4 @@
-const words = [ 'mass', 'bang', 'near', 'bear', 'beam', 'game', 'mars', 'tame', 'mate', 'free', 'reef',
+const wordList = [ 'mass', 'bang', 'near', 'bear', 'beam', 'game', 'mars', 'tame', 'mate', 'free', 'reef',
 	'date', 'Fred', 'grit', 'tied', 'tide', 'diet', 'hide', 'hear', 'here', 'hope', 'read', 'echo', 'cool', 
 	'hole', 'cold', 'cafe', 'fire', 'quit', 'exit', 'from', 'move', 'rice', 'teen', 'four', 'two', 'one', 
 	'zero', 'five', 'six', 'nine', 'ten', 'come', 'came', 'live', 'life', 'good', 'stay', 'goes',
@@ -10,7 +10,8 @@ const words = [ 'mass', 'bang', 'near', 'bear', 'beam', 'game', 'mars', 'tame', 
 	'red', 'run', 'saw', 'say', 'see', 'she', 'sit', 'some', 'the', 'too', 'top', 'try', 'use', 'was', 'way', 
 	'who', 'why', 'yes', 'yet', 'you']
 
-const joins = '0,1,2,3,4,5,6,7,8,9,_,+,-'.split(',')
+const joinList = '0,1,2,3,4,5,6,7,8,9,_,+,-'.split(',')
+const formList = ['manor', 'grange', 'park', 'towers', 'arrow', 'fender', 'birket']
 
 
 class Util{
@@ -37,8 +38,8 @@ class Util{
 		return combo(arr1, arr2)  
 	}
 	genPassword(totalWords){
-		const getWord = () => _.sample(words)
-		const getJoin = () => _.sample(joins)
+		const getWord = () => _.sample(wordList)
+		const getJoin = () => _.sample(joinList)
 		const arr = _.flatMap( _.times(totalWords, () => [getJoin(), getWord()] ) ) 
 	 
 	   _.random() === 0 ? arr[arr.length-1] = arr.shift() : '' // sends the first join to back 50% of time
@@ -48,9 +49,26 @@ class Util{
 	getUserName(first, last){
 		return first.charAt(0)+last
 	}
-	genSchool(info) {
+	genSchool(totalForms, totalYears, totalStudents) {
 		const headers = ['first', 'last', 'year', 'form', 'user', 'password']
+		const genInfo = (totalForms, totalYears) => {
+			const forms = _.sampleSize(formList, totalForms)
+			const years = _.times( totalYears, (i) => i+7 )
+			return { forms, years }
+		}
+		const info = genInfo(totalForms, totalYears)
+		
 		const genFormYear = this.combinations(info.forms, info.years)
+		const genDetails = () => {
+			const lastWord = () => _.sample(['Secondary School', 'High School', 'Academy', 'Middle School'])
+			
+			const name = `${_.sample(['St', ''])} ${faker.name.firstName()} ${lastWord()}`
+			const zipcode = faker.address.zipCode().split('-').pop()
+			const id = faker.address.countryCode()+Math.floor(Math.random()*10000)
+			const address = [faker.address.streetAddress(), faker.address.county(), faker.address.state()][0] // keep simple 
+			
+			return { name, zipcode, id, address }
+		}
 		const genStudent = (gen) => {
 			
 			const [form, year] = gen.next().value
@@ -58,9 +76,10 @@ class Util{
 		
 			return [first, last, year, form, this.getUserName(first, last), this.genPassword(2) ]
 		}
-		
-		const students = _.times(info.total, () => genStudent(genFormYear)  )
-		return { headers, students }
+		const details = genDetails()
+		const students = _.times( totalStudents, () => genStudent(genFormYear)  )
+		 
+		return { headers, students, details }
 	}
 }
 
@@ -89,7 +108,10 @@ class App {
 				success: (data) => resolve(data),
 				contentType: 'application/json; charset=utf-8',
 				dataType: 'json',
-				error:(xhr, ajaxOptions, thrownError) => reject(xhr, ajaxOptions, thrownError)
+				error:(xhr, ajaxOptions, thrownError) => { 
+					console.log(thrownError, xhr)
+					//reject(xhr, ajaxOptions, thrownError)
+				}
 			  })
 		})
 	}
@@ -99,15 +121,9 @@ class App {
 
 		return {
 			time:() => new Object({timestamp:Date.now(), animal:_.sample(['dog', 'cat', 'bunny', 'snake'])}),
-			seedIndividualSchool: () => {
-				const schoolInfo = {
-					forms : ['Manor', 'Grange', 'Park'],
-					years : [7, 8, 9],
-					total : 30
-				}
-
-				return this.util.genSchool(schoolInfo)
-			}
+			
+			seedIndividualSchool: () => this.util.genSchool(3, 2, 30)
+			
 		}[name]
 	}
 
@@ -139,17 +155,25 @@ class App {
 	buildList(data){
 
 		
-		// note totals hard coded
+		// kind of changed thinking so this app is all about the sheets api
+		// seeding schools from the client that will then be used in other
+		// apps exploring database options
+		// hence some of these routes don't make as much sense but may as well
+		// keep for now and clear up later
 		this.buildLink('POST /seed-schools', 'seed-schools', 'will update first sheet with new schools', {total:5}) 
 		this.buildLink('POST /seed-students', 'seed-students', 'will update second sheet with new students', {total:5})
-
-		// again don't think what gets sent matters
 		this.buildLink('POST /full-set-up', 'full-set-up', 'create new populated spreadsheet', 
 			{title:'full-school', schoolsTotal:2, studentsTotal:20})
 			
+		
+		$('<hr />').insertAfter('a:last')
+		$('<h2>Routes in use</h2>').insertAfter('hr')
+
 		this.buildLink('POST /api/seed-individual-school', 'seed-individual-school', 'create data for a typical school', 
 			{fun: 'seedIndividualSchool'})
-				
+
+		// debug can just be a useful place to test something or whatever
+		this.buildLink('POST /debug', 'debug', 'quick route for debugging', {})			
 		this.buildLink('GET /sheet-info', 'sheet-info', 'view the information object for sheet')
 		
 		//this.buildLink('GET /timestamps','timestamps','get items that have been stored')

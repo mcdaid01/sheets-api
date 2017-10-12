@@ -18,9 +18,11 @@ app.use(express.static(publicPath))
 routes(app)
 
 app.use((err, req, res, next) => {
+	console.log(err)
 	console.log('error =', err.message)
 	res.status(422).send(err) // want full message in chrome console, also could use the code of the message
- 	next()
+	 
+	next()
 })
 
 
