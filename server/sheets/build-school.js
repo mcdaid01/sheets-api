@@ -1,12 +1,18 @@
 // going to move the functionality from main_controller so that eventually when students are upload a whole
 // school spreadsheet owned by the school would be created, probably first version will always use the same
 // spreadsheet, will be separate from the first
-const moment = require('moment')
-const _ = require('lodash')
+const [moment, _, fs, path] = [ require('moment'), require('lodash'), require('fs'), require('path')]
 
+const sheetids = require('../sheetids.json') // eventually will write this file
 const sheetHelper = require('./sheet-helper')
+
+const filePath = `${path.join(__dirname, '..')}/sheetids.json`
+
 const getTitle = (spreadsheet) => spreadsheet.sheets[0].properties.title
 const getId = (spreadsheet, sheetIndex) => spreadsheet.sheets[sheetIndex].properties.sheetId
+
+const writeFile = () => fs.writeFile(filePath, JSON.stringify(sheetids), (err, result) => console.log(err, result))
+
 
 
 // const sheetExists = (spreadsheet, sheetIndex) => spreadsheet.sheets[sheetIndex]!==undefined // not used
@@ -17,8 +23,6 @@ const addSheet = async (spreadsheet, title) => {
 	const titles = spreadsheet.sheets.map( sheet => sheet.properties.title )
 	const add = () => sheetHelper.batch(spreadsheet.spreadsheetId, [ ['addSheet', { title, 'rowCount':2, 'columnCount': 2 }] ])
 	
-
-
 	return titles.indexOf(title)=== -1 ? add() : ''
 }
 
@@ -47,21 +51,22 @@ const setSheetProps = (spreadsheet, sheetIndex, title) => {
 	])
 }
 
-const getInfo = (spreadsheetId) => sheetHelper.getInfo(spreadsheetId)
+const getSpreadsheet = (spreadsheetId) => sheetHelper.getSpreadsheet(spreadsheetId)
 
 // this is the main sheet for storing the first,last,year,form,user,password
-const userPassSheet = async (school) => {
+const userPassSheet = async (school, spreadsheet) => {
 	
 	// save creating new spreadsheets each time, can reuse
 	//const spreadsheet = await sheetHelper.newSpreadSheet('sheets-api-sample')
-	const spreadsheet = await getInfo('1RvUHgJvTgyHEQbD52o-9vj4s-vspdjUBYsQG7TSPAe0')
-	const { spreadsheetId } = spreadsheet
-	console.log('before spreadsheetId=', spreadsheetId )
+	//const spreadsheet = await getSpreadsheet(spreadsheetId)
+	
+	
+	console.log('before spreadsheetId=', spreadsheet.spreadsheetId )
 
 	const values = school.students
 	values.unshift(school.headers)
 	
-	await sheetHelper.update(spreadsheetId, values, `${getTitle(spreadsheet)}!A1` )
+	await sheetHelper.update(spreadsheet.spreadsheetId, values, `${getTitle(spreadsheet)}!A1` )
 	await setSheetProps(spreadsheet,  0, 'Students' )
 
 	return values
@@ -73,10 +78,9 @@ const userPassSheet = async (school) => {
 
 // current idea is just create first few columns, add a load of scores and see
 // if can create the reports charts and queries etc
-const scoreSheet = async (values, title) => {
+const scoreSheet = async (values, spreadsheet, title) => {
 	
 	const monday = moment(1507553194386)
-	const spreadsheet = await getInfo('1RvUHgJvTgyHEQbD52o-9vj4s-vspdjUBYsQG7TSPAe0')
 	await addSheet(spreadsheet, title)
 	const totalRecords = 5
 
@@ -98,11 +102,45 @@ const scoreSheet = async (values, title) => {
 	return spreadsheet 
 }
 
-module.exports = {
-	userPassSheet,
-	scoreSheet
+const buildFull =  async schools => {
+	console.log(sheetids)
+
+	const updateMaster = async schools => {
+		const title = 'schools'
+		const spreadsheetId = sheetids.mainSheetId
+		const headers = ['Name', 'Id', 'Address', 'Zipcode'] // want in a particular order
+		const details =  schools.map(ob => ob.details )
+		const values = details.map( ob => headers.map( key => ob[key.toLowerCase()] ) )
+
+		values.unshift(headers)		
+		await sheetHelper.clear(spreadsheetId, `${title}!A1:XX`)
+		
+		return sheetHelper.update(spreadsheetId, values, `${title}!A1` )
+	}
+
+	const createOrUpdate = async(school,index) => {
+		const id = sheetids.schools[index]
+		console.log('id', id)
+
+		const spreadsheet = (id === undefined) ? await sheetHelper.newSpreadSheet(`school-${index}`) : await getSpreadsheet(id)
+		console.log(spreadsheet)
+		sheetids.schools[index] = spreadsheet.spreadsheetId
+
+		const values = await userPassSheet(school, spreadsheet)
+		return scoreSheet(values, spreadsheet, 'multiply')
+	}
+
+	await updateMaster(schools)
+	await Promise.all( schools.map( createOrUpdate ) )
+	
+	//await createOrUpdate(school, index) // get working for one
+
+	writeFile()
+	return schools
 }
 
-// 
-// 
-// 
+module.exports = {
+	userPassSheet,
+	scoreSheet,
+	buildFull
+}

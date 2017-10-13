@@ -82,7 +82,7 @@ exports = { // note would not let me put const infront
 				
 		return update(spreadsheetId, range, valueInputOption, resource, 'append')
 	},
-	getInfo( spreadsheetId ){
+	getSpreadsheet( spreadsheetId ){
 		return new Promise( (resolve, reject) => {
 			const auth = this.auth
 			sheets.spreadsheets.get( {auth, spreadsheetId }, (err, res) => {
@@ -133,8 +133,6 @@ exports = { // note would not let me put const infront
 	}
 }
 
-
-
 const update = (spreadsheetId, range, valueInputOption, resource, operationType) => {
 	return new Promise((resolve, reject) => {
 		const auth = exports.auth
@@ -144,8 +142,6 @@ const update = (spreadsheetId, range, valueInputOption, resource, operationType)
 			})
 	})
 }
-
-
 
 module.exports = exports // still need this though ?
 

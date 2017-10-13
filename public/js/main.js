@@ -1,3 +1,4 @@
+/*global _,faker*/
 const wordList = [ 'mass', 'bang', 'near', 'bear', 'beam', 'game', 'mars', 'tame', 'mate', 'free', 'reef',
 	'date', 'Fred', 'grit', 'tied', 'tide', 'diet', 'hide', 'hear', 'here', 'hope', 'read', 'echo', 'cool', 
 	'hole', 'cold', 'cafe', 'fire', 'quit', 'exit', 'from', 'move', 'rice', 'teen', 'four', 'two', 'one', 
@@ -12,7 +13,6 @@ const wordList = [ 'mass', 'bang', 'near', 'bear', 'beam', 'game', 'mars', 'tame
 
 const joinList = '0,1,2,3,4,5,6,7,8,9,_,+,-'.split(',')
 const formList = ['manor', 'grange', 'park', 'towers', 'arrow', 'fender', 'birket']
-
 
 class Util{
 
@@ -81,6 +81,17 @@ class Util{
 		 
 		return { headers, students, details }
 	}
+	genMany(totalSchools) {
+		// will make them a bit random in terms of sizes, as can be useful in 
+		// testing how spreadsheet handles less entries or more
+		return _.times(totalSchools, () => {
+			const totalStudents = _.random(60, 200)
+			const totalYears = 2
+			const totalForms = _.ceil(totalStudents/totalYears/30) // max 30 a form
+			//console.log(totalStudents, totalYears, totalForms)
+			return this.genSchool(totalForms, totalYears, totalStudents)
+		})
+	}
 }
 
 class App {
@@ -122,7 +133,8 @@ class App {
 		return {
 			time:() => new Object({timestamp:Date.now(), animal:_.sample(['dog', 'cat', 'bunny', 'snake'])}),
 			
-			seedIndividualSchool: () => this.util.genSchool(3, 2, 30)
+			seedSchool: () => this.util.genSchool(3, 2, 30),
+			seedMany: () => this.util.genMany(5)
 			
 		}[name]
 	}
@@ -169,12 +181,15 @@ class App {
 		$('<hr />').insertAfter('a:last')
 		$('<h2>Routes in use</h2>').insertAfter('hr')
 
-		this.buildLink('POST /api/seed-individual-school', 'seed-individual-school', 'create data for a typical school', 
-			{fun: 'seedIndividualSchool'})
-
+		this.buildLink('POST /api/seed-school', 'seed-school', 'create data for a typical school', 
+			{fun: 'seedSchool'})
+		
+		this.buildLink('POST /api/seed-full', 'seed-full', 'create full data manipulating/creating sheets for each school', 
+			{fun: 'seedMany'})
+		
 		// debug can just be a useful place to test something or whatever
 		this.buildLink('POST /debug', 'debug', 'quick route for debugging', {})			
-		this.buildLink('GET /sheet-info', 'sheet-info', 'view the information object for sheet')
+		this.buildLink('GET /spreadsheet', 'spreadsheet', 'view the a spreadsheets json')
 		
 		//this.buildLink('GET /timestamps','timestamps','get items that have been stored')
 		//this.buildLink('POST /storeitem','storeitem','send a timestamp that will be stored on server',{fun:'time'}) 
@@ -197,5 +212,3 @@ class App {
 }
 
 const app = new App('')
-
-

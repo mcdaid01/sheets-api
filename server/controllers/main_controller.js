@@ -1,17 +1,17 @@
-const [faker, _ ] = [ require('faker'), require('lodash')]
+const [faker, _ ] = [ require('faker'), require('lodash') ]
 
 const sheetHelper = require('../sheets/sheet-helper')
 const buildSchool = require('../sheets/build-school')
 
 const { spreadsheetId } = require('../../config/config.js')
 
-let sheetInfo
+let spreadsheet
 
 sheetHelper.ready().then(() => {
 	console.log('sheets ready!!')
 		
-	sheetHelper.getInfo(spreadsheetId).then(info => {
-		sheetInfo = info
+	sheetHelper.getSpreadsheet(spreadsheetId).then(spreadsheet => {
+		spreadsheet = spreadsheet
 	})
 
 	// comeback make sure understand ranges
@@ -39,9 +39,9 @@ sheetHelper.ready().then(() => {
 		]).then( result => console.log(result) )
 })
 
-// note if change stuff like a tab name then info will be out of date so won't get correct title back
-const getSheetTitle = (index) => sheetInfo.sheets[index].properties.title
-const getSheetId = (index) => sheetInfo.sheets[index].properties.sheetId
+// note if change stuff like a tab name then spreadsheet will be out of date so won't get correct title back
+const getSheetTitle = (index) => spreadsheet.sheets[index].properties.title
+const getSheetId = (index) => spreadsheet.sheets[index].properties.sheetId
 
 const totalSchools = 5
 const totalStudents = totalSchools*5 // no point in making massive yet
@@ -152,14 +152,14 @@ module.exports = {
 		
 		try{
 			
-			const info = await sheetHelper.getInfo(spreadsheetId)
+			const spreadsheet = await sheetHelper.getSpreadsheet(spreadsheetId)
 			
 			const arr = [ 
 				['title', {title : 'sheets-api'}],
 				['sheetTitle', {title:'Schools', sheetId: getSheetId(0) } ],
 			]
 
-			if (info.sheets.length === 1)
+			if (spreadsheet.sheets.length === 1)
 				arr.push(['addSheet', { title:'Students', 'rowCount':studentsCount, 'columnCount': 5 }])
 			
 			await sheetHelper.batch(spreadsheetId, arr )
@@ -182,31 +182,39 @@ module.exports = {
 		}
 		catch (e) { next(e) }
 	},
-	async sheetInfo(req, res, next){
+	async spreadsheet(req, res, next){
 		try{
-			const info = await sheetHelper.getInfo(spreadsheetId)
-			res.send (info)
+			const spreadsheet = await sheetHelper.getSpreadsheet(spreadsheetId)
+			res.send (spreadsheet)
 		}
 		catch(e){ next(e) }
 	},
-	async sheetIndividualSchool(req, res, next){
+	async seedSchool(req, res, next){ // from client data
 		try{
 			//if (true)
 			//	return res.send(req.body)
+			
+			const spreadsheet = await sheetHelper.getSpreadsheet('1RvUHgJvTgyHEQbD52o-9vj4s-vspdjUBYsQG7TSPAe0')
 				
-			const values = await buildSchool.userPassSheet(req.body)
-			await buildSchool.scoreSheet(values, 'multiply')
+			const values = await buildSchool.userPassSheet(req.body, spreadsheet)
+			await buildSchool.scoreSheet(values, spreadsheet, 'multiply')
+			res.send (values)
+		}
+		catch(e){ next(e) }
+	},
+	async seedFull(req, res, next){ // from client data do a complete set up of many schools
+		try{						// then can be downloaded to use in databases
+			//if (true)
+			//	return res.send(req.body)
+				
+			const values = await buildSchool.buildFull(req.body)
 			res.send (values)
 		}
 		catch(e){ next(e) }
 	},
 	async debug (req, res, next){
 		try{
-			
-			//const info = await sheetHelper.getInfo(spreadsheetId)
-			//const result = await buildSchool.addSheet('bollocks')
-			//res.send(result)
-			res.send({debug:'you'})
+			res.send({debug:'you'})		
 		}
 		catch(e) { next(e) }
 		

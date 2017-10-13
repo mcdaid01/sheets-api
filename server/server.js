@@ -25,7 +25,6 @@ app.use((err, req, res, next) => {
 	next()
 })
 
-
 const server = app.listen(8080, () => {
 	const host = server.address().address
 	const port = server.address().port
