@@ -118,7 +118,7 @@ const buildFull =  async schools => {
 		return sheetHelper.update(spreadsheetId, values, `${title}!A1` )
 	}
 
-	const createOrUpdate = async(school,index) => {
+	const createOrUpdate = async(school, index) => {
 		const id = sheetids.schools[index]
 		console.log('id', id)
 

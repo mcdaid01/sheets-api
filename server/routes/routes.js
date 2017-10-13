@@ -13,7 +13,7 @@ module.exports = (app) => {
 	// ROUTES IN USE
 	
 	// get the spreadsheet object back to examine in the browser 
-	app.get('/api/spreadsheet', mc.spreadsheet)
+	app.get('/api/spreadsheet/:id', mc.spreadsheet)
 
 	// going to replace with a better name
 	app.post('/api/seed-school', mc.seedSchool )

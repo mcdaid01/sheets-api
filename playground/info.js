@@ -6,13 +6,16 @@ const google = require('googleapis')
 const authentication = require('../server/sheets/authentication')
 const { spreadsheetId } = require('../config/config.js')
 
+//const spreadsheetId = '17c85kM11wmaOpSvLrv5mNsHS2-0aOVZU3D0esJfXmKQ'
+
+
 const getInfo = (auth, spreadsheetId) => {
 	const sheets = google.sheets('v4')
 	sheets.spreadsheets.get( {auth, spreadsheetId }, (err, res) => {
 		console.log('******************')
-		console.log(res)
+		console.log(res.sheets[0])
 		//console.log(err)
-		console.log(res.sheets)
+		//console.log(res.sheets)
 
 		//console.log(res)
 	})

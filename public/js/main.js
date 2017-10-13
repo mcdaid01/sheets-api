@@ -188,8 +188,10 @@ class App {
 			{fun: 'seedMany'})
 		
 		// debug can just be a useful place to test something or whatever
-		this.buildLink('POST /debug', 'debug', 'quick route for debugging', {})			
-		this.buildLink('GET /spreadsheet', 'spreadsheet', 'view the a spreadsheets json')
+		this.buildLink('POST /debug', 'debug', 'quick route for debugging', {})
+		this.buildLink('GET /spreadsheet/:spreadsheetID', 
+			'spreadsheet/1heraWYTC5lhcBl3J3fs_mPA-njaIkdi2RuonJr-8Rq8', 'view the a spreadsheets json')
+
 		
 		//this.buildLink('GET /timestamps','timestamps','get items that have been stored')
 		//this.buildLink('POST /storeitem','storeitem','send a timestamp that will be stored on server',{fun:'time'}) 

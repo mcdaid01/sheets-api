@@ -12,16 +12,31 @@ sheetHelper.ready().then(() => {
 		
 	sheetHelper.getSpreadsheet(spreadsheetId).then(spreadsheet => {
 		spreadsheet = spreadsheet
+		//console.log(spreadsheet.sheets)
 	})
 
-	// comeback make sure understand ranges
+	// at some point should move this stuff into playground
+	if (false)
+		sheetHelper.batch(spreadsheetId, [ 
+			['rowBanding', { bandedRangeId:  1046322736 }],
+			['rowBanding', {sheetId:1052900691}],
+			['sheet.gridProperties', { sheetId:974989790, gridProperties: {rowCount: 6, columnCount:10, frozenRowCount:1 } }],
+			['raw', {
+				updateSheetProperties: {
+					properties: {
+						sheetId: 974989790,
+						title: 'Schools'
+					},
+					fields: 'title'
+				}
+			}]
+		])
 
 	// easier to get working here, just a bunch of batch operations
 	if (false) 
 		sheetHelper.batch(spreadsheetId, [ 
 			['title', {title : 'sheets-api'}],
 			['sheetTitle', {title : 'Sheet 1', sheetId: 0}],
-			['freeze', {rowCount : 1, sheetId:0 }],
 			//['deleteSheet', {sheetId: 1940078753}],
 			['userEnteredFormat', { 
 		 		range:{ sheetId:0, startRowIndex:0, endRowIndex:1  }, //   
@@ -48,7 +63,6 @@ const totalStudents = totalSchools*5 // no point in making massive yet
 
 const schoolIds = []
 _.times(totalSchools, (i) => schoolIds.push('sch-'+ _.padStart(i, 3, '0')) )
-
 
 const createSchool = index => {
 	
@@ -183,7 +197,9 @@ module.exports = {
 		catch (e) { next(e) }
 	},
 	async spreadsheet(req, res, next){
+		console.log(req)
 		try{
+			const spreadsheetId = req.params.id
 			const spreadsheet = await sheetHelper.getSpreadsheet(spreadsheetId)
 			res.send (spreadsheet)
 		}
@@ -214,6 +230,7 @@ module.exports = {
 	},
 	async debug (req, res, next){
 		try{
+			sheetHelper.batch('17c85kM11wmaOpSvLrv5mNsHS2-0aOVZU3D0esJfXmKQ', [['freeze', {rowCount : 1, sheetId:0 }]] )
 			res.send({debug:'you'})		
 		}
 		catch(e) { next(e) }

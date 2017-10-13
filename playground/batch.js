@@ -7,6 +7,7 @@ const authentication = require('../server/sheets/authentication')
 
 const { spreadsheetId } = require('../config/config.js')
 
+
 const [title, find, replacement, sheetId] = ['sheets-api', 'Richard', 'Dick']
 
 const buildRequest  = (id, args, requests) => {
@@ -72,6 +73,47 @@ const buildRequest  = (id, args, requests) => {
 				}
 			})
 		},
+		addBanding : () => { // add this one and get raw working, scores coloured would be quite cool too
+			requests.push({
+				'addBanding': {
+					bandedRange:{
+						range: {
+							'sheetId': 0,
+							startRowIndex: 0,
+							endRowIndex: 6,
+							startColumnIndex: 0,
+							endColumnIndex: 4
+						},
+						rowProperties: {
+							headerColor: {
+								red: 0.95686275,
+								green: 0.39607844,
+								blue: 0.14117648
+							},
+							firstBandColor: {
+								red: 1,
+								green: 1,
+								blue: 1
+							},
+							secondBandColor: {
+								red: 1,
+								green: 0.9019608,
+								blue: 0
+							}
+						}
+					}
+					
+				},
+				
+			})
+		},
+		deleteBanding : () => {
+			requests.push({
+				'deleteBanding': {
+					bandedRangeId: args.bandedRangeId,
+				}
+			})
+		},
 		bold : () => {
 			requests.push({
 				'repeatCell': {
@@ -105,11 +147,17 @@ const requests = []
 //buildRequest( 'addSheet', {title:`sheet ${Math.ceil(Math.random() * 20)}`}, requests )
 
 // note this means its anchored when everything else moves
+
 buildRequest( 'freeze', {sheetId:0}, requests )
 buildRequest( 'bold', {sheetId:0}, requests )
-buildRequest( 'sheetTitle', {title:'Sheet1', sheetId:0}, requests )
-buildRequest( 'title', {title:'supder-sss'}, requests )
+//buildRequest( 'sheetTitle', {title:'Sheet1', sheetId:0}, requests )
+//buildRequest( 'title', {title:'supder-sss'}, requests )
 
+// this one only works once, so may need update banding 
+
+//buildRequest( 'addBanding', {}, requests ) // put options into proper one
+
+// buildRequest('deleteBanding', { bandedRangeId:2082980071}, requests)
 
 // buildRequest( 'deleteSheet', {sheetId:'1523052179'}, requests ) // re can get id from url when the sheet selected
 

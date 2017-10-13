@@ -1,72 +1,7 @@
 const google = require('googleapis')
 const authentication = require('./authentication')
 const sheets = google.sheets('v4')
-
-const batchProcess = (arr) => {
-	const [ type, args  ]= arr 
-	console.log(type)
-	//console.log(type, args)
-	//probably should refactator to a switch as have to parse whole object each time
-	// also can lead to elusive errors such as the userEnteredFormat Object.keys thing
-	const obj ={
-		title : {
-			updateSpreadsheetProperties: {
-				properties: {
-					title: args.title
-				},
-				fields: 'title'
-			}
-		},
-		sheetTitle : {
-			updateSheetProperties: {
-				properties: {
-					sheetId: args.sheetId,
-					title: args.title
-				},
-				fields: 'title'
-			}
-		},
-		freeze : {
-			updateSheetProperties: {
-				properties: {
-					sheetId: args.sheetId,
-					gridProperties: {
-						frozenRowCount: args.rowCount
-					}
-				},
-				'fields': 'gridProperties.frozenRowCount'
-			}
-		},
-		addSheet: {
-			addSheet: {
-				properties: {
-					title: args.title,
-					'gridProperties': { 'rowCount': args.rowCount, 'columnCount': args.columnCount },
-					'tabColor': { 'red': 1.0, 'green': 1.0, 'blue': 1.0 }
-				}
-			}
-		},
-		deleteSheet : { 
-			deleteSheet: { 
-				sheetId : args.sheetId 
-			}  
-		},
-		userEnteredFormat : {
-			repeatCell: {
-				range: args.range,
-				cell: {
-					userEnteredFormat:  args.userEnteredFormat
-				},
-				fields: `userEnteredFormat(${args.userEnteredFormat ? Object.keys(args.userEnteredFormat).join(',') : ''})`
-			}
-		}
-	}[type] 
-
-	// console.log(JSON.stringify(obj, null, 2) )
-	
-
-	return obj
-}
+const batch = require('./batch')
 
 exports = { // note would not let me put const infront
 	update(spreadsheetId, values, range = 'Sheet1!A1', valueInputOption = 'RAW'){
@@ -89,16 +24,15 @@ exports = { // note would not let me put const infront
 				err ? reject(err) : resolve(res) 
 			})
 		})
-		
 	},
 	batch(spreadsheetId, batchList){
 
 		return new Promise( (resolve, reject) => {
 			const auth = this.auth
 			//batchList.forEach( (ob, index) => console.log(JSON.stringify(ob, null, 2) ))
-			const requests = batchList.map(batchProcess)
+			const requests = batchList.map(batch)
 			const resource = { requests }
-			
+
 			sheets.spreadsheets.batchUpdate( { auth, spreadsheetId, resource }, 
 				(err, res) => err ? reject(err) : resolve(res) )
 
@@ -143,6 +77,4 @@ const update = (spreadsheetId, range, valueInputOption, resource, operationType)
 	})
 }
 
-module.exports = exports // still need this though ?
-
-// kind of useful to have info about the sheet particularly sheet ids
+module.exports = exports // still need this though ? YES
