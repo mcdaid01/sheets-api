@@ -120,8 +120,8 @@ class App {
 				contentType: 'application/json; charset=utf-8',
 				dataType: 'json',
 				error:(xhr, ajaxOptions, thrownError) => { 
-					console.log(thrownError, xhr)
-					//reject(xhr, ajaxOptions, thrownError)
+					//console.log(thrownError, xhr)
+					reject(xhr, ajaxOptions, thrownError)
 				}
 			  })
 		})
@@ -164,35 +164,34 @@ class App {
 		data ? overide(data) : ''
 	}
 
-	buildList(data){
+	buildList(){
 
 		
-		// kind of changed thinking so this app is all about the sheets api
-		// seeding schools from the client that will then be used in other
-		// apps exploring database options
-		// hence some of these routes don't make as much sense but may as well
-		// keep for now and clear up later
-		this.buildLink('POST /seed-schools', 'seed-schools', 'will update first sheet with new schools', {total:5}) 
-		this.buildLink('POST /seed-students', 'seed-students', 'will update second sheet with new students', {total:5})
-		this.buildLink('POST /full-set-up', 'full-set-up', 'create new populated spreadsheet', 
-			{title:'full-school', schoolsTotal:2, studentsTotal:20})
-			
 		
-		$('<hr />').insertAfter('a:last')
-		$('<h2>Routes in use</h2>').insertAfter('hr')
-
 		this.buildLink('POST /api/seed-school', 'seed-school', 'create data for a typical school', 
 			{fun: 'seedSchool'})
 		
 		this.buildLink('POST /api/seed-full', 'seed-full', 'create full data manipulating/creating sheets for each school', 
 			{fun: 'seedMany'})
 		
+		
 		// debug can just be a useful place to test something or whatever
 		this.buildLink('POST /debug', 'debug', 'quick route for debugging', {})
+		
+		$('<hr />').insertAfter('li:last')
+		
+		
 		this.buildLink('GET /spreadsheet/:spreadsheetID', 
 			'spreadsheet/1heraWYTC5lhcBl3J3fs_mPA-njaIkdi2RuonJr-8Rq8', 'view the a spreadsheets json')
 
 		
+		this.buildLink('GET /schools', 
+			'schools', 'get the schools-master spreadsheet in json format')
+
+		this.buildLink('GET /school/:spreadsheetID', 
+			'schools/1heraWYTC5lhcBl3J3fs_mPA-njaIkdi2RuonJr-8Rq8', 'get the students in json format')
+
+
 		//this.buildLink('GET /timestamps','timestamps','get items that have been stored')
 		//this.buildLink('POST /storeitem','storeitem','send a timestamp that will be stored on server',{fun:'time'}) 
 	}
@@ -213,4 +212,4 @@ class App {
 	}
 }
 
-const app = new App('')
+window.app = new App('')

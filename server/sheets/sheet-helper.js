@@ -56,8 +56,8 @@ exports = { // note would not let me put const infront
 			}, (err, res) =>  err ? reject(err) : resolve(res) )
 		})
 	},
-	ready(callback){
-		return new Promise( (resolve, reject) => {
+	ready(){
+		return new Promise( (resolve) => { // reject?
 			authentication.authenticate().then( auth => {
 				this.auth = auth
 				resolve()

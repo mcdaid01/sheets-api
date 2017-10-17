@@ -8,7 +8,7 @@ const authentication = require('../server/sheets/authentication')
 const { spreadsheetId } = require('../config/config.js')
 
 
-const [title, find, replacement, sheetId] = ['sheets-api', 'Richard', 'Dick']
+//const [title, find, replacement, sheetId] = ['sheets-api', 'Richard', 'Dick']
 
 const buildRequest  = (id, args, requests) => {
 
@@ -38,8 +38,8 @@ const buildRequest  = (id, args, requests) => {
 		findReplace : () => {
 			requests.push({
 				findReplace: {
-					find: find,
-					replacement: replacement,
+					find: 'Richard',
+					replacement: 'Dick',
 					allSheets: true
 				}
 			})
